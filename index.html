@@ -3,63 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AfriDam AI | Partner SaaS Preview</title>
+    <title>AfriDam AI | SaaS Preview</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
     </style>
 </head>
 <body class="gradient-bg min-h-screen flex items-center justify-center p-6 font-sans text-slate-900">
 
     <div class="max-w-md w-full glass rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
         <div class="p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-slate-800">AfriDam <span class="text-blue-600">AI</span></h1>
-                <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">SaaS V1.0</span>
-            </div>
+            <h1 class="text-2xl font-bold text-slate-800 mb-6">AfriDam <span class="text-blue-600">AI</span> Gateway</h1>
             
-            <p class="text-slate-600 text-sm mb-6">Test the Ene Naturals integration. Upload a clear skin photo to see AI diagnosis and product matching.</p>
-
             <form id="uploadForm" class="space-y-4">
                 <div class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors cursor-pointer" onclick="document.getElementById('fileInput').click()">
                     <input type="file" id="fileInput" accept="image/*" class="hidden">
                     <div id="previewContainer" class="hidden mb-4">
                         <img id="imagePreview" src="#" alt="Preview" class="mx-auto rounded-lg max-h-48 shadow-md">
                     </div>
-                    <div id="uploadPrompt">
-                        <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p class="mt-2 text-sm text-slate-500 font-medium">Click to upload skin photo</p>
-                    </div>
+                    <p id="uploadPrompt" class="text-sm text-slate-500 font-medium">Click to upload skin photo</p>
                 </div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-200 disabled:opacity-50">
-                    Run AI Analysis
-                </button>
+                <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg">Run Analysis</button>
             </form>
 
-            <div id="results" class="mt-8 hidden animate-fade-in">
+            <div id="results" class="mt-8 hidden">
                 <hr class="mb-6 border-slate-200">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">AI Analysis Result</h3>
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-700 font-medium">Condition Detected:</span>
-                        <span id="diagnosisText" class="text-blue-700 font-bold text-lg">---</span>
-                    </div>
-                    
+                    <p class="text-slate-700 font-medium">AI Diagnosis: <span id="diagnosisText" class="text-blue-700 font-bold">---</span></p>
                     <div id="productSection" class="mt-4 pt-4 border-t border-slate-200 hidden">
-                        <p class="text-xs text-slate-500 mb-2">Recommended Partner Product:</p>
-                        <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
-                            <div>
-                                <p id="productName" class="font-bold text-slate-800 text-sm">---</p>
-                                <p id="productPrice" class="text-blue-600 font-semibold text-xs"></p>
-                            </div>
-                            <a id="productUrl" href="#" target="_blank" class="bg-slate-900 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-slate-800 transition">Buy Now</a>
-                        </div>
+                        <p class="text-xs text-slate-500 mb-2">Partner Recommendation:</p>
+                        <p id="productName" class="font-bold text-slate-800 text-sm">---</p>
+                        <a id="productUrl" href="#" target="_blank" class="text-blue-600 text-xs underline">View on Ene Naturals</a>
                     </div>
                 </div>
             </div>
@@ -84,50 +59,40 @@
         uploadForm.onsubmit = async (e) => {
             e.preventDefault();
             const file = fileInput.files[0];
-            if (!file) return alert("Please select an image first");
+            if (!file) return alert("Please select an image");
 
             submitBtn.disabled = true;
-            submitBtn.innerText = "Processing...";
+            submitBtn.innerText = "Analyzing...";
             resultsDiv.classList.add('hidden');
 
             const formData = new FormData();
-            
-            // KEY IS SET TO 'file'
-            formData.append('file', file); 
+            formData.append('file', file); // STRICT: Key must be 'file'
 
             try {
                 const response = await fetch('https://afridam-backend-prod-107032494605.us-central1.run.app/api/v1/saas/scan', {
                     method: 'POST',
-                    headers: {
-                        'X-API-KEY': 'org_live_e750ae8fd2fce64417ee98af316cd9be1c2f97408a4c5b2b'
-                    },
+                    headers: { 'X-API-KEY': 'org_live_e750ae8fd2fce64417ee98af316cd9be1c2f97408a4c5b2b' },
                     body: formData
                 });
 
                 const data = await response.json();
-
                 if (response.ok) {
                     resultsDiv.classList.remove('hidden');
                     document.getElementById('diagnosisText').innerText = data.diagnosis;
-                    
-                    if (data.productRecommendations && data.productRecommendations.length > 0) {
-                        const product = data.productRecommendations[0];
+                    if (data.productRecommendations?.length > 0) {
+                        const prod = data.productRecommendations[0];
                         document.getElementById('productSection').classList.remove('hidden');
-                        document.getElementById('productName').innerText = product.name;
-                        document.getElementById('productPrice').innerText = product.price || "Contact for Price";
-                        document.getElementById('productUrl').href = product.productUrl;
-                    } else {
-                        document.getElementById('productSection').classList.add('hidden');
+                        document.getElementById('productName').innerText = prod.name;
+                        document.getElementById('productUrl').href = prod.productUrl;
                     }
                 } else {
-                    alert(`Server Error: ${data.message || 'Check connection'}`);
+                    alert(`Status ${response.status}: ${data.message}`);
                 }
             } catch (err) {
-                console.error(err);
-                alert("Connection failed.");
+                alert("Network connection error.");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "Run AI Analysis";
+                submitBtn.innerText = "Run Analysis";
             }
         };
     </script>
