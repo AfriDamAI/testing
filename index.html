@@ -82,7 +82,7 @@
             }
         }
 
-        // API Call Logic (Strictly following Swagger & Partner Guide)
+        // API Call Logic
         uploadForm.onsubmit = async (e) => {
             e.preventDefault();
             const file = fileInput.files[0];
@@ -93,10 +93,11 @@
             resultsDiv.classList.add('hidden');
 
             const formData = new FormData();
-            formData.append('image', file); // Mapped to multipart/form-data key 'image'
+            // Key is 'image' to match NestJS @FileInterceptor('image') or DTO
+            formData.append('image', file); 
 
             try {
-                // VERIFIED ENDPOINT FROM SWAGGER
+                // FIXED: Using the full Swagger-verified path including /api prefix
                 const response = await fetch('https://afridam-backend-prod-107032494605.us-central1.run.app/api/v1/saas/scan', {
                     method: 'POST',
                     headers: {
@@ -111,22 +112,26 @@
                     resultsDiv.classList.remove('hidden');
                     document.getElementById('diagnosisText').innerText = data.diagnosis;
                     
-                    // Product Logic
                     if (data.productRecommendations && data.productRecommendations.length > 0) {
                         const product = data.productRecommendations[0];
                         document.getElementById('productSection').classList.remove('hidden');
                         document.getElementById('productName').innerText = product.name;
-                        document.getElementById('productPrice').innerText = product.price || "";
+                        document.getElementById('productPrice').innerText = product.price || "Contact for Price";
                         document.getElementById('productUrl').href = product.productUrl;
                     } else {
                         document.getElementById('productSection').classList.add('hidden');
                     }
                 } else {
-                    alert(`Error: ${data.message || 'The server rejected the request. Check API Key or Image format.'}`);
+                    // Check for 404 specifically to help debugging
+                    if (response.status === 404) {
+                        alert("Error 404: The endpoint was not found. Please verify if the API prefix '/api' is required.");
+                    } else {
+                        alert(`Error: ${data.message || 'The server rejected the request.'}`);
+                    }
                 }
             } catch (err) {
                 console.error(err);
-                alert("Connection failed. Ensure the Backend is online and CORS is enabled for this domain.");
+                alert("Connection failed. Ensure the Backend is online and CORS allows requests from this domain.");
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Run AI Analysis";
